@@ -17,15 +17,15 @@
                 <h1>${user.fullName} profile</h1>
             </div>
             <div class="col-md-6">
-                <form class="float-right mr-2" action="/filesys_war_exploded/user?action=update" method="post">
+                <form class="float-right mr-2" action="/user?action=update" method="post">
                     <button class="btn btn-danger" type="submit">Update User</button>
                 </form>
-                <form class="float-right" action="/filesys_war_exploded/user?action=delete" method="post">
+                <form class="float-right" action="/user?action=delete" method="post">
                     <button class="btn btn-danger" type="submit">Delete profile and related history</button>
                 </form>
             </div>
         </div>
-        <form class="border-info" action="/filesys_war_exploded/user?action=fill" method="post">
+        <form class="border-info" action="/user?action=fill" method="post">
             <table style="width: 100%">
                 <tr>
                     <td>Full Name</td>
@@ -40,7 +40,7 @@
         </form>
         <div class="mt-3"></div>
         <h3>Please, select file to upload</h3>
-        <form class="border-info" action="/filesys_war_exploded/user?action=upload" method="post"
+        <form class="border-info" action="/user?action=upload" method="post"
               enctype="multipart/form-data">
             <input type="file" name="file" size="100"/>
             <br/>

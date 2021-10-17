@@ -6,11 +6,11 @@ import exceptions.NoSuchEntryException;
 import model.File;
 import model.User;
 import org.apache.log4j.Logger;
-import repository.impl.UserRepositoryImpl;
 import service.UserService;
 import util.FileAdapter;
 import util.FileInfoContainer;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 @MultipartConfig(
         fileSizeThreshold = 100 * 1024,
@@ -32,16 +34,12 @@ public class UserServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(UserServlet.class.getName());
     private User user;
     private List<User> users;
-    private final UserService userService;
-
-
-    public UserServlet() {
-        this.userService = new UserService(new UserRepositoryImpl());
-    }
+    private UserService userService;
 
     @Override
-    public void init() throws ServletException {
+    public void init(ServletConfig servletConfig) throws ServletException {
         super.init();
+        userService = (UserService) servletConfig.getServletContext().getAttribute("userService");
         user = new User();
         user.setEvents(new ArrayList<>());
         user.setFiles(new ArrayList<>());
@@ -52,7 +50,6 @@ public class UserServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         String action = req.getParameter("action");
         String id = req.getParameter("id");
-        String fileId = req.getParameter("file_id");
         req.setAttribute("user", user);
         try {
             if (action == null && id != null && !id.isBlank()) {
@@ -62,7 +59,7 @@ public class UserServlet extends HttpServlet {
                     log.error(String.format("User by id %s not found", id));
                 } else {
                     req.setAttribute("user", user);
-                    req.getRequestDispatcher("/user/user-overview.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/user/user-overview").forward(req, resp);
                 }
             }
             switch (action == null ? "info" : action) {
@@ -71,13 +68,13 @@ public class UserServlet extends HttpServlet {
                     log.info("REST request to get user update form" + uid);
                     user = userService.findById(uid);
                     req.setAttribute("user", user);
-                    req.getRequestDispatcher("/user/user-update.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/user/user-update").forward(req, resp);
                 }
                 case "create" -> {
                     log.info("REST request to get user creation form");
                     user = new User();
                     req.setAttribute("user", user);
-                    req.getRequestDispatcher("/user/user-create.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/user/user-create").forward(req, resp);
                 }
                 case "delete" -> {
                     log.info(String.format("REST request to delete user by id: %s", id));
@@ -86,13 +83,13 @@ public class UserServlet extends HttpServlet {
                         user = new User();
                     users = users.stream().filter(user1 -> !user1.getId().equals(Integer.valueOf(id))).collect(Collectors.toList());
                     req.setAttribute("users", users);
-                    req.getRequestDispatcher("/user/users-table.jsp").forward(req, resp);
+                    req.getRequestDispatcher("/user/users-table").forward(req, resp);
                 }
                 default -> {
                     log.info("REST request to get user table page");
                     users = userService.getAll();
                     req.setAttribute("users", users);
-                    req.getRequestDispatcher("/user/users-table.jsp").forward(req, resp);
+                    resp.sendRedirect("/users-table");
                 }
             }
         } catch (Exception e) {
@@ -109,17 +106,17 @@ public class UserServlet extends HttpServlet {
         log.info("REST request to update/create user");
         if ("fill".equals(action)) {
             user = userService.fillFormCompleted(user, Map.of(
-                    "full_name", Optional.ofNullable((req.getParameter("full_name"))).orElse(""),
-                    "email", Optional.ofNullable((req.getParameter("email"))).orElse(""),
-                    "username", Optional.ofNullable((req.getParameter("username"))).orElse(""),
-                    "upload_limit", Optional.ofNullable((req.getParameter("upload_limit"))).orElse("")));
+                    "full_name", ofNullable((req.getParameter("full_name"))).orElse(""),
+                    "email", ofNullable((req.getParameter("email"))).orElse(""),
+                    "username", ofNullable((req.getParameter("username"))).orElse(""),
+                    "upload_limit", ofNullable((req.getParameter("upload_limit"))).orElse("")));
         } else if ("upload".equals(action)) {
             File file = new FileAdapter(new FileInfoContainer(
                     req.getPart("file").getSubmittedFileName(),
                     req.getServletContext().getRealPath(""),
                     req.getParts())).updateUserEvents(user);
             file.setUser(user);
-            Optional.ofNullable(user.getFiles()).ifPresentOrElse(files -> files.add(file), () -> {
+            ofNullable(user.getFiles()).ifPresentOrElse(files -> files.add(file), () -> {
                 user.setFiles(new ArrayList<>());
                 user.getFiles().add(file);
             });
@@ -130,9 +127,9 @@ public class UserServlet extends HttpServlet {
         } else if ("delete".equals(action)) {
             delete(user, resp);
             user = new User();
-            req.getRequestDispatcher("/users-table.jsp").forward(req, resp);
+            req.getRequestDispatcher("/users-table").forward(req, resp);
         } else {
-            req.getRequestDispatcher("/user-overview.jsp").forward(req, resp);
+            req.getRequestDispatcher("/user-overview").forward(req, resp);
         }
     }
 

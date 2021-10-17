@@ -114,5 +114,6 @@
                 <version>7.11.4</version>
             </plugin>
         </plugins>
+        <finalName>ROOT</finalName>
     </build>
 </project>

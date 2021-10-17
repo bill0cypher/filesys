@@ -8,7 +8,7 @@
 </head>
 <body>
 <h1>Guru Register Form</h1>
-<form action="/filesys_war_exploded/user?action=fill" method="post">
+<form action="/user?action=fill" method="post">
     <table style="width: 50%">
         <tr>
             <td>Full Name</td>
@@ -30,13 +30,13 @@
     <input type="submit" value="Fill user data"/></form>
 <div class="mt-3"></div>
 <h3>Please, select file to upload</h3>
-<form action="/filesys_war_exploded/user?action=upload" method="post"
+<form action="/user?action=upload" method="post"
       enctype="multipart/form-data">
     <input type="file" name="file" size="100"/>
     <br/>
     <input type="submit" value="Upload File"/>
 </form>
-<form action="/filesys_war_exploded/user?action=register" method="post">
+<form action="/user?action=register" method="post">
     <button type="submit">Register User</button>
 </form>
 </body>
